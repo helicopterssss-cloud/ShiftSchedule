@@ -95,14 +95,15 @@
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     // 2. 貼上你在 Firebase Console 拿到的 Config
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyArKVikLwpp7PK1phs3ggyNkekrs1lh3L4",
+  authDomain: "shiftschedule-31ebc.firebaseapp.com",
+  projectId: "shiftschedule-31ebc",
+  storageBucket: "shiftschedule-31ebc.firebasestorage.app",
+  messagingSenderId: "288763441022",
+  appId: "1:288763441022:web:b401f841061d3dbd7e4d2f",
+  measurementId: "G-J8N6EZRZ95"
+};
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
