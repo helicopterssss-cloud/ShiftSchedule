@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>專業排班與活動系統 - 個人顏色精準互斥版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>專業排班與活動系統 - 雲端多用戶版</title>
 
 
 
@@ -61,9 +62,110 @@
         /* 複選框美化 */
         .filter-container { max-height: 90px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 8px; background: white; margin-bottom: 5px; display: flex; flex-direction: column; gap: 4px;}
         .filter-label { font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+        /* 【階段3】2. RWD 手機版介面適應 */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { flex-direction: column; height: auto; }
+            /* 手機版：主畫面在上，側邊選單在下 */
+            .main-content { width: 100%; order: 1; min-height: 60vh; padding: 15px; }
+            .sidebar { width: 100%; order: 2; padding: 15px; max-height: 50vh; }
+            .calendar-grid { font-size: 13px; }
+            .day { min-height: 80px; padding: 2px; }
+            .header-tools { flex-direction: column; gap: 10px; align-items: stretch; }
+            .header-tools > div { justify-content: center; }
+        }
+
+        /* Firebase 登入遮罩 */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; color: white; flex-direction: column; backdrop-filter: blur(5px); }
     </style>
 </head>
 <body>
+
+ <div id="login-overlay">
+    <h2>🏥 排班系統 - 員工登入</h2>
+    <p>請使用 Google 帳號進行身分驗證</p>
+    <button id="btn-login" class="btn-primary" style="width: 200px;">Google 登入</button>
+</div>
+
+<script type="module">
+    // 1. 引入 Firebase SDK (V9 Modular)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // 2. 貼上你在 Firebase Console 拿到的 Config
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // 3. 處理登入邏輯
+    document.getElementById('btn-login').addEventListener('click', () => {
+        signInWithPopup(auth, provider).catch(err => alert("登入失敗: " + err.message));
+    });
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('login-overlay').style.display = 'none';
+            console.log("使用者已登入:", user.displayName);
+            startRealtimeSync(); // 登入成功後開始監聽資料庫
+        } else {
+            document.getElementById('login-overlay').style.display = 'flex';
+        }
+    });
+
+    // 4. 即時監聽 Firestore 取代原本的 /api/all
+    function startRealtimeSync() {
+        // 監聽 members 集合
+        onSnapshot(collection(db, "members"), (snapshot) => {
+            allData.members = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateMemberUI();
+        });
+
+        // 監聽 activities 集合
+        onSnapshot(collection(db, "activities"), (snapshot) => {
+            allData.activities = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            updateActivityUI();
+        });
+
+        // 監聽 events 集合 (排班資料)
+        onSnapshot(collection(db, "events"), (snapshot) => {
+            allData.events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            render(); // 資料一變，畫面立刻重繪！多人協同的核心就在這行。
+        });
+        
+        // 監聽 restrictions 集合 (禁排資料)
+        onSnapshot(collection(db, "restrictions"), (snapshot) => {
+            allData.restrictions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            render();
+        });
+    }
+
+    // 5. 改寫寫入邏輯 (示範新增一個 Event)
+    // 以後不需要呼叫 syncData() 到 Node.js 了，直接寫入 Firestore
+    window.saveEventToCloud = async (eventObj) => {
+        try {
+            const newDocRef = doc(collection(db, "events")); 
+            await setDoc(newDocRef, eventObj); // 寫入雲端，其他人會立刻透過 onSnapshot 看到
+        } catch (e) {
+            console.error("寫入失敗: ", e);
+        }
+    };
+
+    // 6. 改寫刪除邏輯
+    window.delItemFromCloud = async (collectionName, id) => {
+        await deleteDoc(doc(db, collectionName, id));
+    };
 
 <div class="container">
     <div class="sidebar">
