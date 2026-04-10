@@ -1,0 +1,516 @@
+{
+  "events": [],
+  "restrictions": [
+    {
+      "id": "rrcks467p",
+      "date": "2026-03-04",
+      "person": "郭",
+      "period": 1
+    },
+    {
+      "id": "skihtmy7m",
+      "date": "2026-03-04",
+      "person": "郭",
+      "period": 2
+    },
+    {
+      "id": "j7obchqjk",
+      "date": "2026-03-04",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "vkye8wq9x",
+      "date": "2026-03-11",
+      "person": "郭",
+      "period": 1
+    },
+    {
+      "id": "kr1ldenli",
+      "date": "2026-03-11",
+      "person": "郭",
+      "period": 2
+    },
+    {
+      "id": "ashgb4jfp",
+      "date": "2026-03-11",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "sonc9mxu6",
+      "date": "2026-03-18",
+      "person": "郭",
+      "period": 1
+    },
+    {
+      "id": "viidmkl1g",
+      "date": "2026-03-18",
+      "person": "郭",
+      "period": 2
+    },
+    {
+      "id": "ykaslo6a6",
+      "date": "2026-03-18",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "w64e8xt18",
+      "date": "2026-03-25",
+      "person": "郭",
+      "period": 1
+    },
+    {
+      "id": "lvxz9npaa",
+      "date": "2026-03-25",
+      "person": "郭",
+      "period": 2
+    },
+    {
+      "id": "vq2eprojt",
+      "date": "2026-03-25",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "dolri6m4e",
+      "date": "2026-03-03",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "dn16wf0ju",
+      "date": "2026-03-10",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "3sepevuy4",
+      "date": "2026-03-17",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "wmpyfqjam",
+      "date": "2026-03-24",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "5gtafafya",
+      "date": "2026-03-31",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "r8h9k9hsk",
+      "date": "2026-03-05",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "hkjyqt3ku",
+      "date": "2026-03-12",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "g9kbp4opm",
+      "date": "2026-03-19",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "e3dwcehn1",
+      "date": "2026-03-26",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "7dd8bn2qy",
+      "date": "2026-03-07",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "eihfdfjj3",
+      "date": "2026-03-14",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "qa71nw8bz",
+      "date": "2026-03-21",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "faklxbs4g",
+      "date": "2026-03-28",
+      "person": "郭",
+      "period": 3
+    },
+    {
+      "id": "q7sd1nqn9",
+      "date": "2026-03-03",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "n3lgno5qz",
+      "date": "2026-03-10",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "1xsu8uk6g",
+      "date": "2026-03-17",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "zcw7ovvgv",
+      "date": "2026-03-24",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "u8rv49829",
+      "date": "2026-03-31",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "3yutgd0eq",
+      "date": "2026-03-05",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "k9vmr74qs",
+      "date": "2026-03-12",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "79mlktqll",
+      "date": "2026-03-19",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "7zgbashk7",
+      "date": "2026-03-26",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "ik0hk770n",
+      "date": "2026-03-07",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "zz3043rzp",
+      "date": "2026-03-14",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "jsbbzycym",
+      "date": "2026-03-21",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "peggfzgxu",
+      "date": "2026-03-28",
+      "person": "徐",
+      "period": 3
+    },
+    {
+      "id": "9azay2cfj",
+      "date": "2026-03-03",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "pkbqpwenj",
+      "date": "2026-03-10",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "op2putfxx",
+      "date": "2026-03-17",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "a1r3215u4",
+      "date": "2026-03-24",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "o8j4ggov7",
+      "date": "2026-03-31",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "95jxg89hq",
+      "date": "2026-03-05",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "kkfc78khq",
+      "date": "2026-03-12",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "i676q5lgy",
+      "date": "2026-03-19",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "n8fozfzfl",
+      "date": "2026-03-26",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "01h8e16us",
+      "date": "2026-03-07",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "65p8dlwnt",
+      "date": "2026-03-14",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "4rtek2oxy",
+      "date": "2026-03-21",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "7dt5sh86z",
+      "date": "2026-03-28",
+      "person": "謝",
+      "period": 3
+    },
+    {
+      "id": "sz5lkxp4v",
+      "date": "2026-03-03",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "5p7z54dir",
+      "date": "2026-03-10",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "xqmknu85u",
+      "date": "2026-03-17",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "cjfcdwj04",
+      "date": "2026-03-24",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "03qner5tp",
+      "date": "2026-03-31",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "co1demyzg",
+      "date": "2026-03-05",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "x5aclmdns",
+      "date": "2026-03-12",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "z94ndph9z",
+      "date": "2026-03-19",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "kdzhsfdxe",
+      "date": "2026-03-26",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "gs7p0orsm",
+      "date": "2026-03-07",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "31el3yf6w",
+      "date": "2026-03-14",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "vir77fuyb",
+      "date": "2026-03-21",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "eab9wcw6q",
+      "date": "2026-03-28",
+      "person": "胡",
+      "period": 3
+    },
+    {
+      "id": "wy02i07ii",
+      "date": "2026-03-03",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "lpd8d3q2g",
+      "date": "2026-03-10",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "gtsbi21c7",
+      "date": "2026-03-17",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "0vwt8a4ca",
+      "date": "2026-03-24",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "efbwje56r",
+      "date": "2026-03-31",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "9qae215lo",
+      "date": "2026-03-05",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "lk99815ty",
+      "date": "2026-03-12",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "kckxw8ki2",
+      "date": "2026-03-19",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "sm46pa4ds",
+      "date": "2026-03-26",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "l8ki5ibpr",
+      "date": "2026-03-07",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "liqstj15c",
+      "date": "2026-03-14",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "mgz27pee9",
+      "date": "2026-03-21",
+      "person": "李",
+      "period": 3
+    },
+    {
+      "id": "fera6t5ky",
+      "date": "2026-03-28",
+      "person": "李",
+      "period": 3
+    }
+  ],
+  "members": [
+    {
+      "id": "1773663317290",
+      "name": "謝",
+      "weight": 2
+    },
+    {
+      "id": "1773663332447",
+      "name": "李",
+      "weight": 3
+    },
+    {
+      "id": "1773663339946",
+      "name": "郭",
+      "weight": 4
+    },
+    {
+      "id": "1773663345946",
+      "name": "徐",
+      "weight": 1
+    },
+    {
+      "id": "1773663354312",
+      "name": "胡",
+      "weight": 3
+    }
+  ],
+  "activities": [
+    {
+      "id": "1773666355908",
+      "name": "A",
+      "color": "#007bff"
+    },
+    {
+      "id": "1773666358179",
+      "name": "B",
+      "color": "#007bff"
+    },
+    {
+      "id": "1773666360740",
+      "name": "C",
+      "color": "#007bff"
+    },
+    {
+      "id": "1773666364564",
+      "name": "D",
+      "color": "#dc3545"
+    }
+  ]
+}

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>專業排班與活動系統 - 個人顏色精準互斥版</title>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+    <style>
+        :root { --primary: #007bff; --danger: #dc3545; --success: #28a745; --info: #17a2b8; --warning: #ffc107; --dark: #343a40; --bg: #f0f2f5; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { display: flex; gap: 20px; width: 100%; max-width: 1600px; height: 95vh; }
+        
+        /* 側邊欄 */
+        .sidebar { width: 380px; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow-y: auto; }
+        .tab-group { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 8px 5px; border: 1px solid #ddd; background: white; color: #333; cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.2s; font-size: 14px;}
+        .tab-btn:hover { background: #f8f9fa; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* 主顯示區 */
+        .main-content { flex: 1; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        .header-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: #f8f9fa; padding: 10px 20px; border-radius: 12px; }
+        input[type="month"], input[type="date"] { padding: 8px; border-radius: 8px; border: 1px solid #ddd; font-weight: bold; }
+
+        select, input[type="text"], input[type="number"], button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        .btn-green { background: var(--success); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-red { background: var(--danger); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-outline { background: white; border: 1px solid #ccc; cursor: pointer; font-weight: bold; transition: 0.2s; color: #333; }
+        .btn-outline:hover { background: #f8f9fa; }
+        .btn-icon { width: 40px; height: 40px; padding: 0; font-size: 20px; display: flex; justify-content: center; align-items: center; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover:not(:disabled) { background: #eef7ff; border-color: var(--primary); }
+        .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; flex: 1; }
+        .cal-header-day { text-align: center; cursor: pointer; border-radius: 6px; padding: 4px 0; transition: 0.2s; user-select: none; }
+        .cal-header-day:hover { background-color: #eef7ff; color: var(--primary) !important; transform: scale(1.05); }
+
+        .day { border: 1px solid #f0f0f0; min-height: 110px; padding: 6px; border-radius: 8px; cursor: pointer; background: #fff; position: relative; display: flex; flex-direction: column; gap: 3px; transition: 0.1s; }
+        .day:hover { border-color: #ccc; }
+        .day.selected { background: #eef7ff; border: 2px solid var(--primary); }
+        
+        .tag { font-size: 11px; padding: 4px; border-radius: 4px; border-left: 4px solid #333; display: block; background: #fafafa; }
+        .rest-tag { background: #ffe6e6; border-left-color: var(--danger) !important; color: var(--danger); font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .del-btn { cursor: pointer; color: #888; font-weight: bold; padding: 0 4px; float: right; transition: 0.2s; }
+        .del-btn:hover { color: red; transform: scale(1.2); }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; }
+        .hidden { display: none !important; }
+
+        #zoom-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .zoom-content-box { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        /* 複選框美化 */
+        .filter-container { max-height: 90px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; border-radius: 8px; background: white; margin-bottom: 5px; display: flex; flex-direction: column; gap: 4px;}
+        .filter-label { font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="tab-group">
+            <button id="tab-cal" class="tab-btn active" onclick="setView('cal')">排班</button>
+            <button id="tab-act" class="tab-btn" onclick="setView('act')">活動設定</button>
+            <button id="tab-mem" class="tab-btn" onclick="setView('mem')">人員設定</button>
+        </div>
+
+        <div id="side-cal">
+            <div id="sel-info" style="background:#eef7ff; padding:10px; border-radius:8px; text-align:center; font-weight:bold; color:var(--primary); margin-bottom:10px;">已選 0 天</div>
+            
+            <div style="font-size: 12px; color: #666; font-weight:bold; margin-bottom: 2px;">👤 人員與活動篩選</div>
+            <select id="person-select" onchange="render()"></select>
+            
+            <div style="font-size: 12px; color: #888; margin: 5px 0 2px 0;">🔍 篩選活動 (可複選，全空視為全顯示)</div>
+            <div id="activity-filter" class="filter-container">
+                </div>
+            
+            <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin: 10px 0; border: 1px solid #eee;">
+                <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555;">📅 排班執行區</div>
+                <div style="display:flex; justify-content:space-around; margin-bottom: 10px;">
+                    <label><input type="checkbox" name="period" value="1"> 早</label>
+                    <label><input type="checkbox" name="period" value="2"> 中</label>
+                    <label><input type="checkbox" name="period" value="3"> 晚</label>
+                </div>
+                <select id="activity-select" style="margin-bottom: 10px; border-color: #b8daff;"></select>
+                <div style="display:flex; gap: 5px;">
+                    <button class="btn-green" style="flex:1" onclick="submitBatch('events')">排班</button>
+                    <button class="btn-red" style="flex:1" onclick="submitBatch('restrictions')">設為禁排</button>
+                </div>
+            </div>
+
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
+            <button class="btn-primary" onclick="autoAssign()">🤖 深度公平自動填班 (防衝突)</button>
+            
+            <div style="display: flex; gap: 5px; margin-top: 10px;">
+                <button class="btn-red" style="background:#ff8800; flex: 2; font-size:13px; padding:8px;" onclick="clearEvents()">🧨 清除所選排班</button>
+                <button class="btn-red" style="background:#dc3545; flex: 1; font-size:13px; padding:8px;" onclick="clearRestrictions()">🚫 清禁排</button>
+            </div>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
+            <select id="export-list" onchange="handleExport(this.value)">
+                <option value="">-- 導出資料選項 --</option>
+                <option value="google">匯出 Google 日曆 (.ics)</option>
+                <option value="excel">下載 Excel 報表</option>
+                <option value="pdf">下載 PDF 預覽</option>
+            </select>
+            <button class="btn-outline" style="background:var(--dark); color:white; margin-top:10px;" onclick="setView('stat')">📊 查看比例統計報表</button>
+        </div>
+
+        <div id="side-act" class="hidden">
+            <div style="font-size:13px; color:#555; margin-bottom:10px;">設定活動及顏色。<br><b>同人同時段同顏色可排班；同人同時段不同顏色不可排。不同人間互不影響。</b></div>
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="text" id="new-act-name" placeholder="輸入活動名稱" style="flex: 2;">
+                <select id="new-act-color" style="flex: 1; padding: 10px;">
+                    <option value="#007bff">🔵 藍色</option>
+                    <option value="#28a745">🟢 綠色</option>
+                    <option value="#dc3545">🔴 紅色</option>
+                    <option value="#fd7e14">🟠 橘色</option>
+                    <option value="#6f42c1">🟣 紫色</option>
+                    <option value="#17a2b8">🩱 青色</option>
+                    <option value="#e83e8c">🌸 粉紅</option>
+                </select>
+            </div>
+            <button class="btn-green" onclick="addActivity()">新增活動</button>
+            <div id="act-list-box" style="margin-top:15px;"></div>
+        </div>
+
+        <div id="side-mem" class="hidden">
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="text" id="new-mem-name" placeholder="輸入成員姓名" onkeypress="if(event.key === 'Enter') addMember()" style="flex: 2;">
+                <input type="number" id="new-mem-weight" placeholder="權重(預設1)" value="1" min="0.1" step="0.1" style="flex: 1;" title="權重越高，分配班次比例越多">
+            </div>
+            <button class="btn-green" onclick="addMember()">確認加入</button>
+            <div id="mem-list-box" style="margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="cal-page" style="display:flex; flex-direction:column; height:100%;">
+            <div class="header-tools">
+                <div style="display:flex; gap: 8px;">
+                    <button class="btn-icon" onclick="undo()" id="undo-btn" disabled title="復原">↩</button>
+                    <button class="btn-icon" onclick="redo()" id="redo-btn" disabled title="重做">↪</button>
+                    <button class="btn-icon" onclick="toggleHideRest()" id="toggle-rest-btn" title="隱藏日曆上的禁排">👁️</button>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="btn-outline" style="width:auto; border:none; font-size:20px;" onclick="moveMonth(-1)">❮</button>
+                    <input type="month" id="month-input" onchange="jumpToMonth(this.value)">
+                    <button class="btn-outline" style="width:auto; border:none; font-size:20px;" onclick="moveMonth(1)">❯</button>
+                </div>
+                <div>
+                    <button class="btn-outline" style="width:100px; padding:8px; font-size:13px;" onclick="toggleSelectAllMonth()" id="toggle-all-btn">☑ 全選本月</button>
+                </div>
+            </div>
+            
+            <div class="calendar-grid" style="flex:0; height:30px; font-weight:bold; border-bottom:2px solid #eee; margin-bottom:5px;">
+                <div class="cal-header-day" style="color:red" onclick="quickSelect(0)">日</div>
+                <div class="cal-header-day" onclick="quickSelect(1)">一</div>
+                <div class="cal-header-day" onclick="quickSelect(2)">二</div>
+                <div class="cal-header-day" onclick="quickSelect(3)">三</div>
+                <div class="cal-header-day" onclick="quickSelect(4)">四</div>
+                <div class="cal-header-day" onclick="quickSelect(5)">五</div>
+                <div class="cal-header-day" style="color:red" onclick="quickSelect(6)">六</div>
+            </div>
+
+            <div id="calendar-body" class="calendar-grid" style="overflow-y: auto;"></div>
+        </div>
+
+        <div id="stat-page" class="hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2>📈 出勤統計報表 (權重正比分析)</h2>
+                <button class="btn-outline" style="width:auto" onclick="setView('cal')">返回日曆</button>
+            </div>
+            <div style="background:#f8f9fa; padding:15px; border-radius:12px; margin-bottom:20px; display:flex; align-items:center; gap:10px;">
+                <span>區間：</span>
+                <input type="date" id="stat-start"> 至 <input type="date" id="stat-end">
+                <button class="btn-primary" style="width:80px; margin:0;" onclick="calculateStats()">篩選計算</button>
+            </div>
+            <table id="stat-table">
+                <thead><tr><th>姓名</th><th>權重</th><th>總排班</th><th>應排期望值</th><th>平日(早/中)</th><th>平日(晚)</th><th>假日</th></tr></thead>
+                <tbody id="stat-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="zoom-modal" class="hidden">
+    <div class="zoom-content-box">
+        <button onclick="closeZoom()" style="position:absolute; right:15px; top:15px; border:none; background:none; font-size:24px; cursor:pointer; color:#888;">×</button>
+        <h2 id="zoom-title" style="margin-top:0; border-bottom: 2px solid #eee; padding-bottom: 10px;"></h2>
+        <div id="zoom-content" style="margin-top: 15px;"></div>
+    </div>
+</div>
+
+<script>
+  // 註冊 Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('✅ Service Worker 註冊成功!', reg.scope))
+                .catch(err => console.error('❌ Service Worker 註冊失敗:', err));
+        });
+    }
+
+
+    let curDate = new Date();
+    let allData = { events: [], restrictions: [], members: [], activities: [] };
+    let selDates = [];
+    let historyStack = [];
+    let redoStack = [];
+    let isHideRestrictions = false;
+    let isMonthSelected = false; 
+
+    const holidays = { "2026-01-01": "元旦", "2026-02-16": "除夕", "2026-02-17": "春節", "2026-02-18": "春節", "2026-02-28": "和平紀念日", "2026-04-03": "兒童節", "2026-04-04": "清明節", "2026-05-01": "勞動節", "2026-06-19": "端午節", "2026-09-25": "中秋節", "2026-10-10": "國慶日" };
+
+    const load = async () => {
+        const res = await fetch('/api/all');
+        const data = await res.json();
+        allData = { 
+            events: data.events || [], 
+            restrictions: data.restrictions || [], 
+            members: data.members || [],
+            activities: data.activities || []
+        };
+        updateMemberUI();
+        updateActivityUI();
+        initStatDates();
+        render();
+        updateHistoryBtns();
+    };
+
+    function saveState() {
+        historyStack.push(JSON.stringify(allData));
+        if (historyStack.length > 20) historyStack.shift();
+        redoStack = [];
+        updateHistoryBtns();
+    }
+
+    function undo() {
+        if (historyStack.length === 0) return;
+        redoStack.push(JSON.stringify(allData));
+        allData = JSON.parse(historyStack.pop());
+        syncData(); updateActivityUI(); updateMemberUI(); render();
+    }
+
+    function redo() {
+        if (redoStack.length === 0) return;
+        historyStack.push(JSON.stringify(allData));
+        allData = JSON.parse(redoStack.pop());
+        syncData(); updateActivityUI(); updateMemberUI(); render();
+    }
+
+    function updateHistoryBtns() {
+        document.getElementById('undo-btn').disabled = historyStack.length === 0;
+        document.getElementById('redo-btn').disabled = redoStack.length === 0;
+    }
+
+    function initStatDates() {
+        const y = curDate.getFullYear(), m = curDate.getMonth();
+        document.getElementById('stat-start').value = new Date(y, m, 1).toISOString().split('T')[0];
+        document.getElementById('stat-end').value = new Date(y, m + 1, 0).toISOString().split('T')[0];
+    }
+
+    function toggleSelectAllMonth() {
+        const y = curDate.getFullYear(), m = curDate.getMonth();
+        const lastDay = new Date(y, m + 1, 0).getDate();
+        
+        if(isMonthSelected) {
+            selDates = [];
+            isMonthSelected = false;
+            document.getElementById('toggle-all-btn').innerText = "☑ 全選本月";
+            document.getElementById('toggle-all-btn').style.background = "white";
+            document.getElementById('toggle-all-btn').style.color = "#333";
+        } else {
+            selDates = [];
+            for(let d=1; d<=lastDay; d++) {
+                selDates.push(`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+            }
+            isMonthSelected = true;
+            document.getElementById('toggle-all-btn').innerText = "☒ 取消全選";
+            document.getElementById('toggle-all-btn').style.background = "#eef7ff";
+            document.getElementById('toggle-all-btn').style.color = "var(--primary)";
+        }
+        render();
+        document.getElementById('sel-info').innerText = `已選 ${selDates.length} 天`;
+    }
+
+    function toggleHideRest() {
+        isHideRestrictions = !isHideRestrictions;
+        const btn = document.getElementById('toggle-rest-btn');
+        if (isHideRestrictions) {
+            btn.innerText = "🙈"; btn.title = "顯示日曆上的禁排";
+            btn.style.background = "#f8d7da"; btn.style.borderColor = "#f5c6cb";
+        } else {
+            btn.innerText = "👁️"; btn.title = "隱藏日曆上的禁排";
+            btn.style.background = "white"; btn.style.borderColor = "#ddd";
+        }
+        render();
+    }
+
+    function quickSelect(type) {
+        const y = curDate.getFullYear(), m = curDate.getMonth();
+        const lastDay = new Date(y, m + 1, 0).getDate();
+        let targetDates = [];
+        for(let d=1; d<=lastDay; d++) {
+            if (new Date(y, m, d).getDay() === type) {
+                targetDates.push(`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+            }
+        }
+        const isAllSelected = targetDates.every(d => selDates.includes(d));
+        if (isAllSelected) selDates = selDates.filter(d => !targetDates.includes(d));
+        else targetDates.forEach(d => { if (!selDates.includes(d)) selDates.push(d); });
+        
+        isMonthSelected = (selDates.length === lastDay);
+        document.getElementById('toggle-all-btn').innerText = isMonthSelected ? "☒ 取消全選" : "☑ 全選本月";
+        render(); document.getElementById('sel-info').innerText = `已選 ${selDates.length} 天`;
+    }
+
+    const getPersonBorderColor = (name) => {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        return `hsl(${Math.abs(hash) % 360}, 85%, 45%)`;
+    };
+
+    const getActivityColor = (actName) => {
+        const act = allData.activities.find(a => a.name === actName);
+        return act ? act.color : '#ccc';
+    };
+
+    const getCheckedActivities = () => {
+        return Array.from(document.querySelectorAll('#activity-filter input:checked')).map(cb => cb.value);
+    };
+
+    function openZoomModal(dateStr, isWeekend, holiday, lunarStr) {
+        const modal = document.getElementById('zoom-modal');
+        const title = document.getElementById('zoom-title');
+        const content = document.getElementById('zoom-content');
+        
+        title.innerHTML = `<span style="color:${isWeekend || holiday ? 'red' : '#333'}">${dateStr}</span> <span style="font-size:16px; color:#888;">${lunarStr}</span> ${holiday ? `<span style="font-size:12px; color:red; background:#ffebeb; padding:2px 6px; border-radius:4px; vertical-align:middle;">${holiday}</span>` : ''}`;
+        
+        let html = '';
+        const filterName = document.getElementById('person-select').value;
+        const checkedActs = getCheckedActivities();
+
+        if (!isHideRestrictions && (checkedActs.length === 0)) {
+            allData.restrictions.filter(r => r.date === dateStr && (!filterName || r.person === filterName)).sort((a,b)=>a.period-b.period).forEach(r => {
+                const pT = r.period == 1 ? '早' : r.period == 2 ? '中' : '晚';
+                html += `<div style="padding:12px; margin-bottom:8px; background:#ffe6e6; border-left:6px solid var(--danger); font-size:16px; display:flex; justify-content:space-between; align-items:center; border-radius:4px;">
+                    <span style="color:var(--danger); font-weight:bold;">🚫 [${pT}] ${r.person} (禁排)</span> 
+                    <span class="del-btn" style="font-size:20px;" onclick="delItem('restrictions','${r.id}',event); openZoomModal('${dateStr}', ${isWeekend}, '${holiday || ''}', '${lunarStr}')">×</span>
+                </div>`;
+            });
+        }
+
+        allData.events.filter(e => {
+            if (e.date !== dateStr) return false;
+            if (filterName && e.person !== filterName) return false;
+            if (checkedActs.length > 0 && (!e.activity || !checkedActs.includes(e.activity))) return false;
+            return true;
+        }).sort((a,b)=>a.period-b.period).forEach(e => {
+            const pT = e.period == 1 ? '早' : e.period == 2 ? '中' : '晚';
+            const borderCol = getPersonBorderColor(e.person);
+            const actColor = getActivityColor(e.activity);
+            const actStr = e.activity ? `<span style="display:inline-flex; align-items:center; color:#555; margin-left:8px; font-weight:normal;"><span style="display:inline-block; width:12px; height:12px; background-color:${actColor}; border-radius:50%; margin-right:4px;"></span>${e.activity}</span>` : '';
+            
+            html += `<div style="padding:12px; margin-bottom:8px; background:#fdfdfd; border:1px solid #eee; border-left:6px solid ${borderCol}; font-size:16px; display:flex; justify-content:space-between; align-items:center; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div><strong>[${pT}] ${e.person}</strong> ${actStr}</div>
+                <span class="del-btn" style="font-size:20px;" onclick="delItem('events','${e.id}',event); openZoomModal('${dateStr}', ${isWeekend}, '${holiday || ''}', '${lunarStr}')">×</span>
+            </div>`;
+        });
+        
+        if(!html) html = '<div style="padding:20px; text-align:center; color:#999; font-size:16px;">本日無符合條件的紀錄</div>';
+        content.innerHTML = html; modal.classList.remove('hidden');
+    }
+
+    function closeZoom() { document.getElementById('zoom-modal').classList.add('hidden'); }
+
+    function render() {
+        const y = curDate.getFullYear(), m = curDate.getMonth();
+        document.getElementById('month-input').value = `${y}-${String(m + 1).padStart(2, '0')}`;
+        const body = document.getElementById('calendar-body');
+        body.innerHTML = '';
+        const first = new Date(y, m, 1).getDay();
+        const daysCount = new Date(y, m + 1, 0).getDate();
+        
+        const filterName = document.getElementById('person-select').value;
+        const checkedActs = getCheckedActivities();
+
+        for(let i=0; i<first; i++) body.appendChild(document.createElement('div')).className='day';
+        
+        for(let d=1; d<=daysCount; d++) {
+            const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const isWeekend = new Date(y, m, d).getDay() % 6 === 0;
+            const holiday = holidays[dateStr];
+            const lunar = Solar.fromYmd(y, m+1, d).getLunar();
+
+            const div = document.createElement('div');
+            div.className = `day ${selDates.includes(dateStr)?'selected':''}`;
+            div.onclick = (e) => {
+                if (e.target.className.includes('del-btn')) return;
+                selDates.includes(dateStr) ? selDates=selDates.filter(x=>x!==dateStr) : selDates.push(dateStr);
+                render(); document.getElementById('sel-info').innerText=`已選 ${selDates.length} 天`;
+            };
+            div.ondblclick = (e) => { e.stopPropagation(); openZoomModal(dateStr, isWeekend, holiday, lunar.getDayInChinese()); };
+
+            let html = `<div style="display:flex; justify-content:space-between; margin-bottom: 2px; pointer-events: none;"><span style="color:${isWeekend || holiday ? 'red':'#333'}; font-weight:bold;">${d} <small style="color:#aaa; font-size:9px;">${lunar.getDayInChinese()}</small></span>${holiday ? `<span style="font-size:9px; color:red; background:#ffebeb; padding: 0 2px; border-radius: 3px;">${holiday}</span>`:''}</div>`;
+            
+            let dayItems = [];
+            
+            if (!isHideRestrictions && (checkedActs.length === 0)) {
+                allData.restrictions.filter(r => r.date === dateStr && (!filterName || r.person === filterName)).sort((a,b)=>a.period-b.period).forEach(r => dayItems.push({ type: 'rest', data: r }));
+            }
+
+            allData.events.filter(e => {
+                if (e.date !== dateStr) return false;
+                if (filterName && e.person !== filterName) return false;
+                if (checkedActs.length > 0 && (!e.activity || !checkedActs.includes(e.activity))) return false;
+                return true;
+            }).sort((a,b)=>a.period-b.period).forEach(e => dayItems.push({ type: 'event', data: e }));
+
+            const MAX_ITEMS = 3;
+            for (let i = 0; i < dayItems.length; i++) {
+                if (i < MAX_ITEMS) {
+                    if (dayItems[i].type === 'rest') {
+                        const r = dayItems[i].data;
+                        const pT = r.period == 1 ? '早' : r.period == 2 ? '中' : '晚';
+                        html += `<div class="tag rest-tag"><span>🚫 [${pT}] ${r.person}</span> <span class="del-btn" onclick="delItem('restrictions','${r.id}',event)">×</span></div>`;
+                    } else {
+                        const e = dayItems[i].data;
+                        const pT = e.period == 1 ? '早' : e.period == 2 ? '中' : '晚';
+                        const borderCol = getPersonBorderColor(e.person);
+                        const actColor = getActivityColor(e.activity);
+                        const actStr = e.activity ? `<span style="display:inline-block; width:8px; height:8px; background-color:${actColor}; border-radius:50%; margin-left:4px;" title="${e.activity}"></span>` : '';
+                        
+                        html += `<div class="tag" style="border-left-color:${borderCol}; display:flex; justify-content:space-between; align-items:center; padding:4px; margin-bottom:2px;" title="雙擊可放大檢視">
+                            <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; pointer-events: none;">
+                                <span style="font-weight:bold;">[${pT}] ${e.person}</span>${actStr}
+                            </div>
+                            <span class="del-btn" onclick="delItem('events','${e.id}',event)" style="flex-shrink:0;">×</span>
+                        </div>`;
+                    }
+                } else if (i === MAX_ITEMS) {
+                    html += `<div style="display:flex; gap:4px; justify-content:center; padding: 4px 0; flex-wrap:wrap; pointer-events:none;" title="還有更多內容，雙擊放大檢視">`;
+                    html += `<div style="width:8px; height:8px; border-radius:50%; background-color:${dayItems[i].type === 'rest' ? '#dc3545' : getPersonBorderColor(dayItems[i].data.person)};"></div>`;
+                } else {
+                    html += `<div style="width:8px; height:8px; border-radius:50%; background-color:${dayItems[i].type === 'rest' ? '#dc3545' : getPersonBorderColor(dayItems[i].data.person)};"></div>`;
+                }
+            }
+            if (dayItems.length > MAX_ITEMS) html += `</div>`; 
+            
+            div.innerHTML = html; body.appendChild(div);
+        }
+    }
+
+    // ⭐ 核心修正區：互斥邏輯嚴格綁定【同一人】、【同一天】、【同時段】
+    function canAssignActivity(date, period, personName, targetActName) {
+        const targetColor = getActivityColor(targetActName);
+        if (!targetColor) return true; // 如果沒有顏色資料，不執行阻擋
+
+        // 嚴格過濾：同日期 + 同時段 + 【同一人】 (統一轉字串再比對)
+        const existingEvents = allData.events.filter(e => 
+            e.date === date && 
+            String(e.period) === String(period) && 
+            e.person === personName
+        );
+        
+        for (let e of existingEvents) {
+            const extColor = getActivityColor(e.activity);
+            // 同一人在該時段，若已有「不同顏色」的活動，才會觸發互斥！
+            if (extColor && extColor !== targetColor) {
+                return false; 
+            }
+        }
+        return true; // 若同色或無排班 -> 允許
+    }
+
+    async function submitBatch(type) {
+        const p = document.getElementById('person-select').value;
+        const actText = document.getElementById('activity-select').value;
+        const ps = Array.from(document.querySelectorAll('input[name="period"]:checked')).map(c => c.value); // 保持為字串
+        
+        if(!p || !selDates.length || !ps.length) return alert('請勾選人員、日期與時段');
+        if(type === 'events' && !actText) return alert('排班必須選擇一項活動');
+        
+        // 驗證顏色互斥 (傳入 p 判斷單一員工)
+        if (type === 'events') {
+            for(let d of selDates) {
+                for(let period of ps) {
+                    if (!canAssignActivity(d, period, p, actText)) {
+                        const pName = period == '1' ? '早班' : period == '2' ? '中班' : '晚班';
+                        return alert(`排班失敗！人員【${p}】在 ${d} 的【${pName}】已有不同顏色的活動，依規則互斥無法排入。`);
+                    }
+                }
+            }
+        }
+
+        saveState();
+        selDates.forEach(d => {
+            ps.forEach(period => {
+                if(type === 'events') {
+                    allData.events.push({ id: Math.random().toString(36).substr(2,9), date: d, person: p, period: period, activity: actText });
+                } else {
+                    allData.restrictions.push({ id: Math.random().toString(36).substr(2,9), date: d, person: p, period: period });
+                }
+            });
+        });
+        await syncData();
+        selDates = []; render(); document.getElementById('sel-info').innerText = "已選 0 天";
+    }
+
+    async function autoAssign() {
+        const actText = document.getElementById('activity-select').value;
+        const ps = Array.from(document.querySelectorAll('input[name="period"]:checked')).map(c => c.value); // 保持為字串
+        if(!selDates.length || !ps.length) return alert('請勾選日期與時段');
+        if(!actText) return alert('請選擇要自動分配的活動');
+        
+        saveState();
+        let randomDates = [...selDates].sort(() => Math.random() - 0.5);
+
+        randomDates.forEach(date => {
+            let randomPs = [...ps].sort(() => Math.random() - 0.5);
+
+            randomPs.forEach(p => {
+                const restricted = allData.restrictions.filter(r => r.date === date && String(r.period) === String(p)).map(r => r.person);
+                
+                let available = allData.members.filter(m => {
+                    if(restricted.includes(m.name)) return false;
+                    
+                    // 1. 檢查該員同時段的顏色互斥 (同色可排，不同色不可排)
+                    if (!canAssignActivity(date, p, m.name, actText)) return false;
+
+                    // 2. 防呆機制：為了避免自動排班將「完全相同」的活動重複排給同一個人
+                    const hasExactSameActivity = allData.events.some(e => 
+                        e.date === date && String(e.period) === String(p) && e.person === m.name && e.activity === actText
+                    );
+                    if (hasExactSameActivity) return false;
+
+                    return true;
+                });
+                
+                if(available.length > 0) {
+                    available.sort((a, b) => {
+                        const wA = a.weight || 1;
+                        const wB = b.weight || 1;
+                        const aTotalCount = allData.events.filter(e => e.person === a.name).length;
+                        const bTotalCount = allData.events.filter(e => e.person === b.name).length;
+                        // 權重分配核心：排班數 / 權重。數值越低者越優先。
+                        const ratioA = aTotalCount / wA;
+                        const ratioB = bTotalCount / wB;
+
+                        if (Math.abs(ratioA - ratioB) > 0.001) return ratioA - ratioB; 
+                        return Math.random() - 0.5;
+                    });
+
+                    const winner = available[0];
+                    allData.events.push({ id: Math.random().toString(36).substr(2,9), date, person: winner.name, period: p, activity: actText });
+                }
+            });
+        });
+        await syncData();
+        selDates = []; render(); document.getElementById('sel-info').innerText = "已選 0 天";
+    }
+
+    async function clearEvents() {
+        if(selDates.length === 0) return alert('請先選取要清除的日期');
+        saveState();
+        allData.events = allData.events.filter(e => !selDates.includes(e.date));
+        await syncData(); selDates = []; render(); document.getElementById('sel-info').innerText = "已選 0 天";
+    }
+
+    async function clearRestrictions() {
+        if(selDates.length === 0) return alert('請先選取要清除的日期');
+        saveState();
+        allData.restrictions = allData.restrictions.filter(r => !selDates.includes(r.date));
+        await syncData(); selDates = []; render(); document.getElementById('sel-info').innerText = "已選 0 天";
+    }
+
+    async function delItem(type, id, e) {
+        if(e) e.stopPropagation();
+        saveState();
+        allData[type] = allData[type].filter(i => i.id !== id);
+        await syncData();
+        if(type === 'members') updateMemberUI();
+        if(type === 'activities') updateActivityUI();
+        render();
+    }
+
+    async function syncData() {
+        await fetch('/api/save_all', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(allData) });
+        updateHistoryBtns();
+    }
+
+    // --- 活動設定相關 ---
+    async function addActivity() {
+        const name = document.getElementById('new-act-name').value.trim();
+        const color = document.getElementById('new-act-color').value;
+        if(!name) return;
+        if(allData.activities.some(a => a.name === name)) return alert('此活動名稱已存在！');
+        saveState();
+        allData.activities.push({ id: Date.now().toString(), name, color });
+        await syncData();
+        document.getElementById('new-act-name').value = '';
+        updateActivityUI();
+    }
+
+    function updateActivityUI() {
+        const actSel = document.getElementById('activity-select');
+        const curAct = actSel.value;
+        actSel.innerHTML = '<option value="">-- 請選擇活動 --</option>' + allData.activities.map(a => `<option value="${a.name}">${a.name}</option>`).join('');
+        actSel.value = curAct;
+
+        const checkedBefore = getCheckedActivities();
+        const filterBox = document.getElementById('activity-filter');
+        filterBox.innerHTML = allData.activities.map(a => {
+            const isChecked = checkedBefore.includes(a.name) ? 'checked' : '';
+            return `<label class="filter-label"><input type="checkbox" value="${a.name}" onchange="render()" ${isChecked}> <span style="display:inline-block; width:12px; height:12px; background-color:${a.color}; border-radius:50%;"></span> ${a.name}</label>`;
+        }).join('');
+
+        document.getElementById('act-list-box').innerHTML = allData.activities.map(a => {
+            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee; border-left: 6px solid ${a.color}; background:#fafafa; margin-bottom:5px; border-radius:4px;">
+                <span style="font-weight:bold;">${a.name}</span>
+                <button class="btn-red" style="width:60px; padding:3px; font-size:12px;" onclick="delItem('activities','${a.id}',event)">刪除</button>
+            </div>`;
+        }).join('');
+    }
+
+    // --- 人員設定相關 ---
+    async function addMember() {
+        const name = document.getElementById('new-mem-name').value.trim();
+        const weight = parseFloat(document.getElementById('new-mem-weight').value) || 1;
+        if(!name) return;
+        saveState();
+        allData.members.push({ id: Date.now().toString(), name, weight });
+        await syncData();
+        document.getElementById('new-mem-name').value = ''; document.getElementById('new-mem-weight').value = '1';
+        updateMemberUI();
+    }
+
+    function updateMemberUI() {
+        const sel = document.getElementById('person-select');
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">-- 全員顯示 / 選擇人員 --</option>' + allData.members.map(m => `<option value="${m.name}">${m.name}</option>`).join('');
+        sel.value = cur;
+        
+        document.getElementById('mem-list-box').innerHTML = allData.members.map(m => {
+            const borderCol = getPersonBorderColor(m.name);
+            const w = m.weight || 1;
+            return `<div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee; border-left: 4px solid ${borderCol}; background:#fafafa; margin-bottom:5px; border-radius:4px;">
+                <span style="font-weight:bold;">${m.name} <span style="font-size:12px; color:#666; font-weight:normal;">(權重: ${w})</span></span>
+                <button class="btn-red" style="width:60px; padding:3px; font-size:12px;" onclick="delItem('members','${m.id}',event)">刪除</button>
+            </div>`;
+        }).join('');
+    }
+
+    function calculateStats() {
+        const start = document.getElementById('stat-start').value;
+        const end = document.getElementById('stat-end').value;
+        const stats = {};
+        let totalWeight = 0;
+        
+        allData.members.forEach(m => {
+            const w = m.weight || 1;
+            totalWeight += w;
+            stats[m.name] = { weight: w, wNormal: 0, wNight: 0, holiday: 0, total: 0 };
+        });
+
+        let grandTotalShifts = 0;
+        allData.events.forEach(e => {
+            if (e.date < start || e.date > end) return;
+            const isH = new Date(e.date).getDay() % 6 === 0 || holidays[e.date];
+            if(stats[e.person]) {
+                if(isH) stats[e.person].holiday++;
+                else String(e.period) === '3' ? stats[e.person].wNight++ : stats[e.person].wNormal++;
+                stats[e.person].total++;
+                grandTotalShifts++;
+            }
+        });
+
+        let sumNormal = 0, sumNight = 0, sumHoliday = 0;
+        let html = Object.keys(stats).map(n => {
+            sumNormal += stats[n].wNormal; sumNight += stats[n].wNight; sumHoliday += stats[n].holiday;
+            let expected = totalWeight > 0 ? (stats[n].weight / totalWeight) * grandTotalShifts : 0;
+            let diffStyle = stats[n].total < expected - 1 ? "color:red;" : (stats[n].total > expected + 1 ? "color:green;" : "");
+            
+            return `<tr>
+                <td><b>${n}</b></td>
+                <td>${stats[n].weight}</td>
+                <td style="font-weight:bold; ${diffStyle}">${stats[n].total}</td>
+                <td style="color:#888;">${expected.toFixed(1)}</td>
+                <td>${stats[n].wNormal}</td>
+                <td>${stats[n].wNight}</td>
+                <td>${stats[n].holiday}</td>
+            </tr>`;
+        }).join('');
+
+        html += `<tr style="background:#eef7ff; color:var(--primary); font-size:15px;">
+                    <td colspan="2"><b>班別總計</b></td>
+                    <td><b>${grandTotalShifts}</b></td>
+                    <td>-</td>
+                    <td><b>${sumNormal}</b></td>
+                    <td><b>${sumNight}</b></td>
+                    <td><b>${sumHoliday}</b></td>
+                 </tr>`;
+
+        document.getElementById('stat-table-body').innerHTML = html;
+    }
+
+    function getFilteredEvents() {
+        const filterName = document.getElementById('person-select').value;
+        const checkedActs = getCheckedActivities();
+        
+        return allData.events.filter(e => {
+            if (filterName && e.person !== filterName) return false;
+            if (checkedActs.length > 0 && (!e.activity || !checkedActs.includes(e.activity))) return false;
+            return true;
+        });
+    }
+
+    function handleExport(val) {
+        if(!val) return;
+        if(val === 'google') {
+            exportICS();
+        } else if(val === 'excel') {
+            const filteredEvents = getFilteredEvents();
+            if (filteredEvents.length === 0) return alert("沒有資料可匯出！");
+            const ws = XLSX.utils.json_to_sheet(filteredEvents);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Schedule");
+            XLSX.writeFile(wb, "排班表.xlsx");
+        } else if(val === 'pdf') {
+            html2pdf().from(document.getElementById('cal-page')).save('月份排班.pdf');
+        }
+        document.getElementById('export-list').value = '';
+    }
+
+    function exportICS() {
+        const filteredEvents = getFilteredEvents();
+        if (filteredEvents.length === 0) return alert("沒有資料可匯出！");
+
+        let ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Shift//TW", "CALSCALE:GREGORIAN"];
+        const times = { "1": {s: "080000", e: "120000"}, "2": {s: "130000", e: "170000"}, "3": {s: "180000", e: "220000"} };
+        
+        filteredEvents.forEach(e => {
+            const d = e.date.replace(/-/g, '');
+            const p = String(e.period) === '1' ? "早班" : String(e.period) === '2' ? "中班" : "晚班";
+            const actStr = e.activity ? ` - 活動: ${e.activity}` : "";
+            ics.push("BEGIN:VEVENT", `DTSTART:${d}T${times[e.period].s}`, `DTEND:${d}T${times[e.period].e}`, `SUMMARY:[${p}] ${e.person}${actStr}`, "END:VEVENT");
+        });
+        
+        ics.push("END:VCALENDAR");
+        const blob = new Blob([ics.join("\r\n")], { type: "text/calendar" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob); link.download = `shift.ics`; link.click();
+    }
+
+    function jumpToMonth(v) { 
+        if(!v) return; 
+        const [y,m] = v.split('-'); 
+        curDate = new Date(y, m-1, 1); 
+        resetSelections();
+    }
+    
+    function moveMonth(n) { 
+        curDate.setMonth(curDate.getMonth()+n); 
+        resetSelections();
+    }
+
+    function resetSelections() {
+        isMonthSelected = false; 
+        document.getElementById('toggle-all-btn').innerText = "☑ 全選本月";
+        document.getElementById('toggle-all-btn').style.background = "white";
+        document.getElementById('toggle-all-btn').style.color = "#333";
+        selDates = []; initStatDates(); render(); document.getElementById('sel-info').innerText = `已選 0 天`;
+    }
+    
+    function setView(v) {
+        document.getElementById('tab-cal').classList.toggle('active', v==='cal');
+        document.getElementById('tab-act').classList.toggle('active', v==='act');
+        document.getElementById('tab-mem').classList.toggle('active', v==='mem');
+        document.getElementById('side-cal').classList.toggle('hidden', v!=='cal');
+        document.getElementById('side-act').classList.toggle('hidden', v!=='act');
+        document.getElementById('side-mem').classList.toggle('hidden', v!=='mem');
+        document.getElementById('cal-page').style.display = v==='cal'?'flex':'none';
+        document.getElementById('stat-page').classList.toggle('hidden', v!=='stat');
+        if(v==='stat') calculateStats();
+    }
+
+    load();
+</script>
+</body>
+</html>
